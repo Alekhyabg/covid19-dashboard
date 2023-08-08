@@ -1,74 +1,103 @@
+/* eslint-disable react/no-unknown-property */
 import {Component} from 'react'
-
+import Loader from 'react-loader-spinner'
 import Header from '../Header'
-
 import Footer from '../Footer'
-
-import FaqItem from '../FaqItem'
-
-import LoaderSpinner from '../LoaderSpinner'
-
+import AboutCovidFaqList from '../AboutCovidFaqList'
+import AboutCovidFactList from '../AboutCovidFactList'
 import './index.css'
 
 class About extends Component {
   state = {
-    faqList: [],
     isLoading: true,
+    aboutList: {},
+    aboutFaq: {},
   }
 
   componentDidMount() {
-    this.getAboutFaqs()
+    this.aboutCovidList()
   }
 
-  getAboutFaqs = async () => {
-    const url = 'https://apis.ccbp.in/covid19-faqs'
-
+  aboutCovidList = async () => {
+    const apiUrl = 'https://apis.ccbp.in/covid19-faqs'
     const options = {
       method: 'GET',
     }
+    const response = await fetch(apiUrl, options)
+    if (response.ok) {
+      const data = await response.json()
+      const aboutBannerData = data.factoids.map(eachItem => ({
+        banner: eachItem.banner,
+        id: eachItem.id,
+      }))
+      const aboutFaqData = data.faq.map(eachItem => ({
+        aboutAnswer: eachItem.answer,
+        aboutCategory: eachItem.category,
+        aboutQuestionNo: eachItem.qno,
+        aboutQuestion: eachItem.question,
+      }))
 
-    const response = await fetch(url, options)
-
-    const data = await response.json()
-
-    this.setState({faqList: data.faq, isLoading: false})
+      this.setState({
+        aboutFaq: aboutFaqData,
+        aboutList: aboutBannerData,
+        isLoading: false,
+      })
+    } else {
+      console.log('data not available')
+    }
   }
 
-  renderAbout = () => {
-    const {faqList} = this.state
-
+  aboutCovidLists = () => {
+    const {aboutFaq, aboutList} = this.state
     return (
-      <div className="about-container">
-        <p className="about-heading">About</p>
-        <p className="about-date">Last updated March 21, 2022</p>
-        <p className="about-description">
-          COVID-19 vaccines be ready for distribution
-        </p>
-        <ul className="list-items-container" data-testid="faqsUnorderedList">
-          {faqList.map(eachFaq => (
-            <FaqItem key={eachFaq.qno} faqDetails={eachFaq} />
+      <>
+        <ul className="About-about-facts" testid="faqsUnorderedList">
+          {aboutFaq.map(eachItem => (
+            <AboutCovidFaqList
+              answer={eachItem.aboutAnswer}
+              question={eachItem.aboutQuestion}
+              key={eachItem.aboutQuestionNo}
+            />
           ))}
         </ul>
-      </div>
+
+        <h1 className="About-heading-class">Factoids</h1>
+        <ul className="About-about-facts">
+          {aboutList.map(eachItem => (
+            <AboutCovidFactList banner={eachItem.banner} key={eachItem.id} />
+          ))}
+        </ul>
+      </>
     )
   }
 
   render() {
     const {isLoading} = this.state
     return (
-      <div>
+      <>
         <Header />
-        {isLoading ? (
-          <div data-testid="aboutRouteLoader">
-            <LoaderSpinner />
-          </div>
-        ) : (
-          <>
-            {this.renderAbout()}
-            <Footer />
-          </>
-        )}
-      </div>
+        <div className="About-container">
+          {isLoading ? (
+            <div className="loading-class" testid="aboutRouteLoader">
+              <Loader type="Oval" color="#007BFF" height={50} width={50} />
+            </div>
+          ) : (
+            <>
+              <div className="About-container-column">
+                <h1 className="About-heading">About</h1>
+                <p className="About-paragraph">
+                  Last update on march 28th 2021.
+                </p>
+                <p className="About-heading-class">
+                  COVID-19 vaccines be ready for distribution
+                </p>
+              </div>
+              <div>{this.aboutCovidLists()}</div>
+            </>
+          )}
+        </div>
+        <Footer />
+      </>
     )
   }
 }

@@ -1,7 +1,3 @@
-import {Component} from 'react'
-
-import './index.css'
-
 class Counter extends Component {
   render() {
     return (
